@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_nav"
+    app:startDestination="@id/loginPage">
+
+    <fragment
+        android:id="@+id/loginPage"
+        android:name="com.example.nearbyrestaurants.LoginPage"
+        android:label="fragment_login_page"
+        tools:layout="@layout/fragment_login_page" >
+        <action
+            android:id="@+id/goToRestaurantListPage"
+            app:destination="@id/restaurantListPage" />
+    </fragment>
+    <fragment
+        android:id="@+id/restaurantListPage"
+        android:name="com.example.nearbyrestaurants.RestaurantListPage"
+        android:label="fragment_restaurant_list_page"
+        tools:layout="@layout/fragment_restaurant_list_page" >
+        <action
+            android:id="@+id/goToDetailPage"
+            app:destination="@id/restaurantDetailPage" />
+    </fragment>
+    <fragment
+        android:id="@+id/restaurantDetailPage"
+        android:name="com.example.nearbyrestaurants.RestaurantDetailPage"
+        android:label="fragment_restaurant_detail_page"
+        tools:layout="@layout/fragment_restaurant_detail_page" >
+        <action
+            android:id="@+id/returnToListPage"
+            app:destination="@id/restaurantListPage" />
+    </fragment>
+</navigation>
