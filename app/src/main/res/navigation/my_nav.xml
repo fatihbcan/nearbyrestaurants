@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/loginPage"
-        android:name="com.example.nearbyrestaurants.LoginPage"
+        android:name="com.example.nearbyrestaurants.view.LoginPage"
         android:label="fragment_login_page"
         tools:layout="@layout/fragment_login_page" >
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/restaurantListPage"
-        android:name="com.example.nearbyrestaurants.RestaurantListPage"
+        android:name="com.example.nearbyrestaurants.view.RestaurantListPage"
         android:label="fragment_restaurant_list_page"
         tools:layout="@layout/fragment_restaurant_list_page" >
         <action
@@ -25,11 +25,14 @@
     </fragment>
     <fragment
         android:id="@+id/restaurantDetailPage"
-        android:name="com.example.nearbyrestaurants.RestaurantDetailPage"
+        android:name="com.example.nearbyrestaurants.view.RestaurantDetailPage"
         android:label="fragment_restaurant_detail_page"
         tools:layout="@layout/fragment_restaurant_detail_page" >
         <action
             android:id="@+id/returnToListPage"
             app:destination="@id/restaurantListPage" />
+        <argument
+            android:name="details"
+            app:argType="com.example.nearbyrestaurants.model.Restaurant_" />
     </fragment>
 </navigation>

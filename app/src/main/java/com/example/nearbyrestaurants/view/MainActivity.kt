@@ -1,10 +1,11 @@
-package com.example.nearbyrestaurants
+package com.example.nearbyrestaurants.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.example.nearbyrestaurants.R
 import com.google.android.material.navigation.NavigationView
 
 class MainActivity : AppCompatActivity() {
