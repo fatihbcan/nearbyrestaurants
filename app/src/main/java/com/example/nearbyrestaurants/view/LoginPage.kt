@@ -1,7 +1,9 @@
 package com.example.nearbyrestaurants.view
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -27,6 +29,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -45,10 +50,10 @@ class LoginPage : Fragment() {
     val PERMISSION_ID_XX = 1010
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
-
+    private val EMAIL = "email"
     private lateinit var executor: Executor
     var callbackManager : CallbackManager? = null
-    
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,19 +61,43 @@ class LoginPage : Fragment() {
     ): View? {
 
         val view = inflater.inflate(R.layout.fragment_login_page, container, false)
+        showLocationPrompt()
         checkLocationPermission()
 
         googleSignInOpt()
         auth = FirebaseAuth.getInstance()
         callbackManager = CallbackManager.Factory.create()
-        LoginManager.getInstance().logOut()
+        if(LoginManager.getInstance()!=null){
+            LoginManager.getInstance().logOut()
+        }
         googleSignInClient.signOut()
 
         executor = ContextCompat.getMainExecutor(context)
         val biometricManager = context?.let { BiometricManager.from(it) }
 
 
+
+        /*val loginbutton = view.facebook_login_button
+        loginbutton.fragment = this
+        loginbutton.setPermissions(Arrays.asList(EMAIL,"public_profile"))
+        loginbutton.registerCallback(callbackManager,object :FacebookCallback<LoginResult>{
+            override fun onSuccess(result: LoginResult?) {
+                Log.d(Constraints.TAG, "facebook:onSuccess:$result")
+                handleFacebookAccessToken(result?.accessToken)
+            }
+
+            override fun onCancel() {
+                Toast.makeText(activity, "Facebook login canceled !! ",Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onError(error: FacebookException?) {
+                Toast.makeText(activity, "Error occurred during authentication !! ",Toast.LENGTH_SHORT).show()
+            }
+
+        })*/
+
         view.facebook_login_button.setOnClickListener { facebookLogin() }
+
 
 
         view.fingerprint.setOnClickListener {
@@ -104,8 +133,18 @@ class LoginPage : Fragment() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        callbackManager?.onActivityResult(requestCode,resultCode,data)
         super.onActivityResult(requestCode, resultCode, data)
+        callbackManager?.onActivityResult(requestCode,resultCode,data)
+
+        when (requestCode) {
+            LocationRequest.PRIORITY_HIGH_ACCURACY -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    Log.e("Status: ","On")
+                } else {
+                    Log.e("Status: ","Off")
+                }
+            }
+        }
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
@@ -210,9 +249,10 @@ class LoginPage : Fragment() {
 
         biometricPrompt.authenticate(promptInfo)
     }
+
     fun facebookLogin(){
 
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email"))
+        LoginManager.getInstance().logInWithReadPermissions(this, listOf("email","public_profile"))
         LoginManager.getInstance()
             .registerCallback(callbackManager,object : FacebookCallback<LoginResult> {
 
@@ -231,6 +271,8 @@ class LoginPage : Fragment() {
 
             })
     }
+
+
     fun handleFacebookAccessToken(token : AccessToken?){
         val credential = FacebookAuthProvider.getCredential(token?.token!!)
         auth.signInWithCredential(credential)
@@ -243,6 +285,7 @@ class LoginPage : Fragment() {
                 }
             }
     }
+
     fun moveToListPage(user: FirebaseUser?){
 
         if(user != null){
@@ -279,6 +322,47 @@ class LoginPage : Fragment() {
             return false
         } else {
             return true
+        }
+    }
+    private fun showLocationPrompt() {
+        val locationRequest = LocationRequest.create()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+
+        val result: Task<LocationSettingsResponse> =
+            activity?.let { LocationServices.getSettingsClient(it).checkLocationSettings(builder.build()) } as Task<LocationSettingsResponse>
+
+        result.addOnCompleteListener { task ->
+            try {
+                val response = task.getResult(ApiException::class.java)
+                // All location settings are satisfied. The client can initialize location
+                // requests here.
+            } catch (exception: ApiException) {
+                when (exception.statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                        try {
+                            // Cast to a resolvable exception.
+                            val resolvable: ResolvableApiException = exception as ResolvableApiException
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            resolvable.startResolutionForResult(
+                                activity, LocationRequest.PRIORITY_HIGH_ACCURACY
+                            )
+                        } catch (e: IntentSender.SendIntentException) {
+                            // Ignore the error.
+                        } catch (e: ClassCastException) {
+                            // Ignore, should be an impossible error.
+                        }
+                    }
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                        // Location settings are not satisfied. But could be fixed by showing the
+                        // user a dialog.
+
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                    }
+                }
+            }
         }
     }
 
